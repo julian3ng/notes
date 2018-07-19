@@ -1,0 +1,232 @@
+#+STARTUP: overview
+* Bash
+   :PROPERTIES:
+   :VISIBILITY: folded
+   :END:
+** Startup
+   - What is a login shell?
+     - Shell that you get when you login -- has authentication
+     - Invoked by =bash -l= or =bash --login=
+   - What files does a login shell read?
+     - =/etc/profile=, =~/.bash_profile=, =~/.bash_login=, or =~/.profile=, with the
+       next looked for only if the previous isn't found
+   - What is an interactive shell?
+     - Shell that you get through other applications
+     - Invoked by =bash -i=
+   - What files does an interactive shell read?
+     - =~/.bashrc=
+     - You can source =~/.bashrc= via =~/.bash_profile= with
+       #+BEGIN_SRC bash
+         if [ -f ~/.bashrc ]; then . ~/.bashrc; fi
+       #+END_SRC
+       (the =.= is equivalent to =source=)
+   - What file is read on logout?
+     - =~/.bash_logout=
+** Init files
+   - What does =/etc/profile= do?
+     - Set up system-wide settings and paths
+   - What does =/etc/bashrc= do?
+     - bash-specific configurations
+   - What does =~/.bash_profile= do? 
+     - configure user environments
+   - What does =~/.bash_login= do?
+     - executed when you login
+   - What does =~/.profile= do?
+     - read only if there's no =~/.bash_profile= or =~/.bash_login=
+     - other shells may read this so don't use bash-specific syntax
+   - What does =~/.bashrc= do?
+     - used on interactive non-login shells
+   - What does =~/.bash_logout= do?
+     - runs right before logout
+** TODO Builtins
+   - What are the =sh= builtins and what do they do?
+     - =:=
+     - =.=
+     - =break=
+     - =cd=
+     - =continue=
+     - =eval=
+     - =exec=
+     - =exit=
+     - =export=
+     - =getopts=
+     - =hash=
+     - =pwd=
+     - =readonly=
+     - =return=
+     - =set=: set options that are inherited from =sh= to other shells
+     - =shift=
+     - =test=
+     - =[=
+     - =times=
+     - =trap=
+     - =umask=
+     - =unset=
+   - What are the =bash= builtins and what do they do?
+     - =alias=
+     - =bind=
+     - =builtin=
+     - =command=
+     - =declare=
+     - =echo=
+     - =enable=
+     - =help=
+     - =let=
+     - =local=
+     - =logout=
+     - =printf=
+     - =read=
+     - =shopt=: set bash-specific options
+     - =type=
+     - =typeset=
+     - =ulimit=
+     - =unalias=
+   - What are the POSIX mode special builtins and what do they do?
+     - =:=
+     - =.=
+     - =break=
+     - =continue=
+     - =eval=
+     - =exec=
+     - =exit=
+     - =export=
+     - =readonly=
+     - =return=
+     - =set=
+     - =shift=
+     - =trap=
+     - =unset=
+** Debugging
+   - What =set= options are there and what do they do?
+     - =set -f= / =set -o noglob=: disables file name generation using globs (disable glob expansion)
+     - =set -v= / =set -o verbose=: print shell lines as they are read
+     - =set -x= / =set -o xtrace=: print command lines before executing command
+   - What tools can we use for debugging?
+     - bashdb
+     - =set -[f|v|x]=
+** Variables
+   - What is an environment variable?
+     - Environment variables are global variables
+   - How do we show all environment variables?
+     - =printenv= or =env=
+   - How do we set a variable?
+     #+BEGIN_SRC bash
+       variable="value"
+     #+END_SRC
+   - What is good practice when setting variables?
+     - Quote the value!
+   - How do we access the value of a variable?
+     - =$variable=
+   - What does exporting a variable do?
+     - Allows subshells (not parent shells) to see the variable and its changes
+   - What names are reserved?
+     - =CDPATH=, =HOME=, =IFS=, =MAIL=, =MAILPATH=, =OPTARG=, =OPTIND=, =PATH=, =PS1=, =PS2=
+     - and a whole lot more... consult the bash manpage
+** Special Parameters
+   - What does =$*= do?
+     - All positional parameters.  When quoted, makes one string. **NOT USUALLY WHAT YOU WANT**
+   - What does =$@= do?
+     - All positional parameters.  When quoted, makes a string array
+   - What does =$#= do?
+     - Number of positional parameters
+   - What does =$?= do?
+     - Most recent exit status
+   - What does =$-= do?
+     - Current set of option flags from command invocation, =set=, or shell
+   - What does =$$= do?
+     - PID Of shell
+   - What does =$!= do?
+     - PID of last executed background command
+   - What does =$0= do?
+     - Name of your shell
+   - What does =$_= do?
+     - Last parameter of previous command
+** Quoting things
+   - What does \ do?
+     - Escapes the next character
+   - What does 'string' do?
+     - Takes the literal string
+   - What does "string" do?
+     - Takes the literal string except for $, `, and \
+   - What does "$'string'" do?
+     - backslash-escaped characters are replaced as specified by the ANSI-C standard
+   - What does $"string" do?
+     - translated according to the current locale
+** Brace Expansion
+   - When is brace expansion performed?
+     - FIRST
+     - Therefore, all other special characters are maintained
+   - What does =echo f{ee,oo}d= expand to?
+     - =feed food=
+** Tilde Expansion
+   - What does =~= expand to?
+     - =$HOME=
+   - What does =~+= expand to?
+     - =$PWD=
+   - What does =~-= expand to?
+     - =$OLDPWD=
+   - What do =~+N=  and =~N= expand to, where =N= is an integer?
+     - the directory =N= down from the top of the directory stack
+   - What does =~-N= expand to, where =N= is an integer?
+     - the director =N= up from the bottom of the directory stack
+** Shell Parameter Expansion
+   - What does =$N= expand to, where =N= is an integer?
+     - The nth parameter given
+   - What must you do to refer to the 10th parameter and on?
+     - Wrap it in braces: =${10}=
+   - What does =x=y; y=z; echo ${!x}= output?
+     - This is /indirect expansion/, and outputs =z=
+   - What does =echo ${foo:=bar}= do?
+     - This creates =foo= with value =bar= /only if it doesn't already exist/
+** Command Substitution
+   - What does =$(cmd)= do?
+     - This runs =cmd= and substitutes the output
+   - What does =`cmd`= do?
+     - This runs =cmd= and substitutes the output
+     - /DO NOT USE/
+** Arithmetic Expansion
+   - What does =$((expression))= do?
+     - =expression= acts as if it were in double quotes, but double quotes aren't specially treated
+     - All tokens undergo parameter expansion, command substitution, quote
+       removal, and arithmetic expansion
+     - Finally, the expression is evaluated
+     - Caveats
+       - /Fixed-width integers with no overflow checks/
+       - Leading zeros make numbers octal
+       - Leading =0x= or =0X= make numbers hexadecimal
+       - Leading =n#= makes numbers base =n=
+   - What does =$[expression]= do?
+     - Same thing old and deprecated
+** Process Substitution
+   - What does =<(cmd)= do?
+     - The output of =cmd= becomes an input for something else
+   - What does =>(cmd)= do?
+     - The output of something else becomes input for =cmd=
+** Word Splitting
+   - What does =$IFS= contain?
+     - The characters that the shell considers delimiters
+     - <space><tab><newline> by default
+   - How are words split?
+     - Any sequence of characters in =$IFS= separates words
+   - What if =$IFS= is not the default?
+     - If there is a whitespace character in =$IFS= then leading and trailing
+       whitespace is stripped
+     - If there is a non-whitespace character in =$IFS= then it is used as a delimiter
+   - What if =$IFS= is =NULL=?
+     - No word splitting occurs
+** File Name Expansion
+   - What happens after word splitting?
+     - Shell searches for =*=, =?=, and =[=, which indicate patterns
+   - What are patterns replaced by?
+     - A sorted list of file names matching the pattern
+     - What if there are no matches?
+       - If shell option =nullglob= is set, the pattern is removed
+       - If shell option =nullglob= is unset, the pattern remains
+     - What does =nocaseglob= do?
+       - Pattern match becomes case insensitive
+     - What does the variable =GLOBIGNORE= do?
+       - In a pattern match, if a match is found in =GLOBIGNORE=, it is removed
+         from the list of matches
+       - =.= and =..= are always ignored
+     - What does the shell option =dotglob= do?
+       - When enabled, =.*= files will be matched
