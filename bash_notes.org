@@ -230,3 +230,68 @@
        - =.= and =..= are always ignored
      - What does the shell option =dotglob= do?
        - When enabled, =.*= files will be matched
+** Aliases
+   - What is an alias?
+     - Aliases are strings that are substituted for a word when used as the
+       /FIRST WORD/ of a /SIMPLE COMMAND/
+   - How do you set an alias?
+     - =alias string=replacement=
+   - How do you remove an alias?
+     - =unalias string=
+   - How do you list aliases?
+     - =alias=
+   - What if the last character of an alias is a space or tab?
+     - The next command in the word following the alias is also checked for alias expansion
+   - In what kind of shell are aliases expanded?
+     - Interactive shells
+     - (Unless =expand_aliases= is set with =shopt=)
+   - Which shells recognize aliases?
+     - Only =bash=
+   - Which are faster, aliases, or functions?
+     - Functions
+** Options
+   - How do you show options?
+     - =set -o=
+   - How do you set options?
+     - =set -o <optionname>=
+   - How do you unset options?
+     - =set +o <optionname>=
+   - Useful options?
+     - =-u=: unset variables are error
+     - =-x=: tracing
+     - =-v=: verbose
+** Regex
+   - What matches any single character?
+     - =.=
+   - What indicates the previous character is matched 0 or 1 time?
+     - =?=
+   - What indicates that the previous character is matched 0 or more times?
+     - =*=
+   - What indicates that the previous character is matched 1 or more times?
+     - =+=
+   - What matches a character =N= times?
+     - ={N}=
+   - What matches a character =N= or more times?
+     - ={N,}=
+   - What matches a character =N= or more times but not =M= or more times?
+     - ={N,M}=
+   - What is the range indicator?
+     - =-=
+   - What matches the beginnning of a line?
+     - =^=
+   - What matches the end of a line? 
+     - =$=
+   - What matches a word border?
+     - =\b=
+   - What matches a whitespace that's not a word border?
+     - =\B=
+   - What matches an empty string at the beginning of a word?
+     - =\<=
+   - What matches an empty string at the end of a word?
+     - =\>=
+   - When do metacharacters =?+{|}()= lose their meaning?
+     - When only basic regexes are enabled (default grep)
+   - What are character classes?
+     - Matches any character enclosed by =[= and =]=
+     - Matches any character not enclosed if the first character is =^=
+     - Matches any character in a range if a range operator =-= is used
