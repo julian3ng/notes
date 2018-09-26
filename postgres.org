@@ -1,0 +1,131 @@
+* Background
+  - Started in Berkeley as a database management system
+  - added SQL support in 1994
+  - postgres95 used C, was built with make, and had a codebase overhaul
+  - Renamed to PostgreSQL after 1996
+* Tutorial
+** Installation
+   - brew install postgres; brew services start postgresql
+** Architecture
+   - Client/server model
+     - Server manages the database files, accepts connections from clients, and
+       performs queries for the clients
+     - Client is the user that wishes to do something with the database
+   - Communicates over TCP/IP
+   - Concurrent connections are supported by forking the server process when a
+     new connection comes in.
+     - The master server always runs, forking off associated server processes
+       for each client
+** Databases
+   - create one: =createdb <name>=
+   - delete one: =dropdb <name>=
+   - access one: =psql <name>=
+   - Once in the prompt:
+     - =\h= for help
+     - =\q= to quit
+** SQL tutorial
+   - single step mode: =psql -s <name>=
+     - =-s= puts us in single step mode, pausing before sending statements to the server
+   - read from file: =\i <scriptname>= 
+*** Table
+    - Collection of rows, which are collections of named columns
+    - Columns have fixed position and type
+    - Rows do NOT have a fixed order
+    - Tables are grouped into databases
+    - Databases managed by the same PostgreSQL server instance are a database cluster
+*** Make a table
+    #+BEGIN_SRC sql
+      CREATE TABLE weather (
+             city  varchar(80),
+             temp_lo  int,  -- low temp
+             temp_hi  int,  -- high temp
+             prcp     real, -- precipitation
+             date     date
+      );
+    #+END_SRC
+*** Delete a table
+    =DROP TABLE <name>=
+*** Inserting into a table
+    - =INSERT INTO <table> VALUES (<values>);=
+    - =INSERT INTO <table> [(<column order)] values (<values>);=
+    - =COPY <name> FROM 'path/to/data.txt';=
+*** Querying a table
+    - =SELECT <columns> FROM <table>;=
+    - =SELECT <column expression> [AS <output column label>] from <table>;=
+    - =SELECT <columns> FROM <table> WHERE <boolean>;=
+    - =SELECT <columns> FROM <table> ORDER BY <column>[,<column>]*;=
+    - =SELECT DISTINCT <column> FROM <table>;=
+*** Joining tables
+    - =SELECT * FROM <table1>, <table2> WHERE <boolean expr>;=
+      - The boolean should involve both tables' columns to get the correct data out
+      - If there are columns of the same name you can qualify them:
+        - =SELECT * FROM t1, t2 WHERE t1.col = t2.col;=
+    - Alternate syntax: =SELECT * FROM <table1> INNER JOIN <table2> ON (<boolean>)=
+    - Outer join: If no match on boolean, fill in empty values
+      - Left outer join: All values on the left will show up, values on the
+        right will be filled in with nulls if necessary
+        - =SELECT * FROM <table1> LEFT OUTER JOIN <table2> ON (<boolean>);=
+      - Right outer join: All values on the right will show up, values on the
+        left will be filled with nulls if necessary
+      - Full outer join: All values appear, all unmatched values will be filled
+        with nulls
+    - Self join: Relabel each side of the join to disambiguate:
+      - =SELECT <columns> FROM <table1> <alias1>, <table2> <alias2> WHERE <boolean>;=
+        - Use the aliases to refer to columns in the columns and the boolean
+*** Aggregate functions
+    - =SELECT max(<column>) FROM <table>;=
+    - aggregate functions can only be used in the =SELECT=.
+      - =SELECT col FROM tab WHERE col = max(col);= would not work
+      - =SELECT col FROM tab WHERE col = (SELECT max(col) from tab)= works using
+        the subquery 
+    - =SELECT col, max(other_col) FROM tab GROUP BY col;= gets the maximum
+      =other_col= for each value in =col=.
+    - =SELECT col, max(other col) FROM tab GROUP BY col HAVING max(other_col) < 30;=
+      - we can use aggregates in the =HAVING= but not the =WHERE= because =HAVING=
+        operates on group rows after groups and aggregates are calculated, not
+        before (as in the case of =WHERE=).
+*** Updating tables
+    - =UPDATE <table> SET col = val, col2 = val2 WHERE <boolean>;=
+    - =DELETE FROM <table> WHERE <boolean>=
+    - =DELETE FROM <table>= nukes everything
+*** Views: save a query 
+    - =CREATE VIEW <name> AS <query>=
+*** Foreign Keys: ensure keys match in different tables
+    - When creating a table:
+      - =CREATE TABLE cities ( city varchar(80) primary key, <others> );=
+      - =CREATE TABLE weather (city varchar(80) reference cities(city), <others>);=
+    - Now users must have a matching city in =cities= before adding to =weather=.
+    - The primary key is necesasry to uniquely identify each row in a table
+    - A foreign key is a primary key of another table
+*** Transaction: all or nothing
+    - Multiple steps aggregated - if one step fails, then the whole thing is
+      aborted and rolled back
+    - Transactions are recorded on disk before returning as completed
+    - Transactions are atomic; two transactions happening at once can't affect
+      each other
+    - =BEGIN; <commands>; COMMIT;=
+    - If we're halfway through and want to abort the transaction, use =ROLLBACK;=
+      to unwind the whole thing.
+    - We can define savepoints: =SAVEPOINT <name>= and rollback to them with
+      =ROLLBACK TO <name>=
+*** Window functions
+    - Calculate across related rows but don't aggregate
+    - =SELECT x, y, z, avg(z) OVER (PARTITION BY x) FROM t;=
+      - For each different value of =x=, calculate the average of =z= for rows of
+        that =x=
+      - Select =x, y, z, avg(z)= from those rows andff partition them visually
+    - =SELECT x, y, z rank() OVER (PARTITION BY x ORDER BY y DESC);=
+      - For each different value of =x=, order within each value of =x= by =y= and
+        assign a rank to them
+    - =SELECT x, sum(x) OVER () FROM t;=
+      - =sum(x)= will be the total sum: =ORDER BY= defaults to the partition, and
+        =PARTITION BY=  defaults to the whole table
+    - =SELECT x, sum(x) OVER(ORDER BY x) from t;=
+      - This calculates the running sum as =GROUP BY= changes the window frame to
+        the start of the partition to the current row
+    - Window functions are allowed in =SELECT= and =ORDER BY= only
+*** Inheritance
+    - =CREATE TABLE parent (<column> <type>,);=
+    - =CREATE TABLE child (<column> <type>,) INHERITS (parent);=
+    - =SELECT * FROM parent;= gets everything from =parent= and =child=
+    - =SELECT * FROM ONLY parent;= gets =parent \ child=
