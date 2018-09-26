@@ -1,4 +1,5 @@
 #+STARTUP: overview
+[[http://tldp.org/LDP/Bash-Beginners-Guide/html/Bash-Beginners-Guide.html][TLDP Beginner's Bash Guide]]
 * Bash
    :PROPERTIES:
    :VISIBILITY: folded
@@ -295,3 +296,198 @@
      - Matches any character enclosed by =[= and =]=
      - Matches any character not enclosed if the first character is =^=
      - Matches any character in a range if a range operator =-= is used
+** Sed intro
+   - Print lines that match a pattern
+     - =sed -n '/pattern/p' file= (-n because otherwise sed prints everything,
+       and matched lines twice)
+   - Delete lines matching a pattern 
+     - =sed -n '/pattern/d' file=
+   - Delete lines 2 through 4
+     - =sed -n '2,4d' file=
+   - Delete lines 3 and onward
+     - =sed -n '3,$d' file=
+   - Delete lines between first line containing "a text" and next line
+     containing "This"
+     - =sed -n '/a text/,/This/p' file=
+   - Find and replace
+     - =sed 's/find/replace/g' file=
+   - Insert at beginning of each line
+     - =sed 's/^/> /' file=
+** Awk intro
+   - What does =$0= hold?
+     The entire line
+   - What does =$n= hold for =$n>=1=?
+     - The =nth= field
+   - Print fields
+     - =awk '{print $5 $9}'=
+   - Match and do something
+     - =awk '/match/ { print $0 }'=
+   - What do =BEGIN= and =END= do?
+     - They allow you do things at the beginning and end of the program
+   - What is the field separator?
+     - The variable =FS= controls what delineates fields when the file is read
+   - What is the output field separator?
+     - The variable =OFS= controls how fields are separated when they are printed
+   - What is the output record separator?
+     - The variable =ORS= separates lines on output
+   - What is the number of records?
+     - =NR= is the number of records that have been processed
+** Conditionals
+   - What is the basic form of =if=?
+     - =if TEST; then STUFF; fi=
+   - =[ -a file ]=, =[ -e file ]=
+     - Tests if =file= exists
+   - =[ -d file ]=
+     - Tests if =file= is a directory
+   - =[ -f file ]=
+     - Tests if =file= is a regular file and exists
+   - =[ -r file ]=
+     - Tests if =file= is readable
+   - =[ -s file ]=
+     - Tests if =file= is nonempty
+   - =[ -w file ]=
+     - Tests if =file= is writable
+   - =[ -x file ]=
+     - Tests if =file= is executable
+   - =[ -L file ]=
+     - Tests if =file= is a symlink
+   - =[ -N file ]=
+     - Tests if =file= has been modified since last read
+   - =[ -S file ]=
+     - Tests if =file= is a socket
+   - =[ file -nt file2 ]=
+     - Tests if =file= is newer than =file2= or if it exists and =file2= doesn't
+     - use =-ot=, =-ef= for older and same
+   - =[ -o option ]=
+     - Tests if =option= is set
+   - =[ -z string ]=
+     - Tests if =string= is length 0
+     - =-n= for nonzero length
+   - Typical arithmetic comparators
+     - These are for STRINGS
+   - =-eq, -ne, -lt, -le, -gt, -ge=
+     - Arithmetic comparators
+   - =[ ! expr ]=
+     - Not =expr=
+   - =[ expr -a expr2 ]=
+     - And
+   - =[ expr -o expr2 ]=
+     - Or
+   - What's the difference between single and double brackets?
+     - Double brackets prevent word splitting of variables, so things like
+       =VAR=="=spaces here=" don't get expanded
+   - Elif, else?
+     =if ... ; then ... ; elif ... ; then ... ; else ... ; fi
+   - Case
+     - =case expr in case1) ... ;; case2) ... ;; esac
+** Read
+   - =read [options] Name1 Name2 ...=
+     - Read whitespace delimited input from stdin into =Name1, Name2...=
+   - =-a=
+     - Read input into an array
+   - =-d=
+     - Use this to delimit the input line instead of newline
+   - =-e=
+     - Use readline
+   - =-n nchars=
+     - Read nchars only
+   - =-p prompt=
+     - Display prompt ahead of input
+   - =-r=
+     - Do not consider backslash as an escape character
+   - =t timeout=
+     - Use a timeout
+   - =-u FD=
+     - Use =FD= file descriptor as input
+** Loops
+   - =for name in list; do ...; done=
+     - do something for every =name= in =list=, =name= is bound.
+     - if =list= isn't given, then =in $@= is used instead.
+   - =while [ $i -lt 4 ]; do ...; i=$[$i+1]; done=
+     - Just a while loop, note how =i= is updated
+   - =until=
+     - Same as while loop, but waits for conditional to be true
+   - =break=, =continue=
+     - As normal, =break= allows you to control which loop to break out of in
+       nested loops.
+   - =select name in list; do ...; done=
+     - Provides a nice interface for selection
+     - Number makes selection
+     - EOF exists
+     - Set =PS3= for the prompt string
+   - =shift=
+     - Generally used with =while (( "$#" )) ; do ...; done=
+       - =(( ))= evaluates arithmetic
+       - Just keep using =$1= until arguments are all shifted away
+** Variables
+   - =declare=
+     - Use =declare -option var=value=
+     - options:
+       - =-a=: array
+       - =-f=: function
+       - =-i=: integer
+       - =-p=: display attributes and values of var, ignore all other flags
+       - =-r=: read only
+       - =-t=: add trace attribute
+       - =-x=: export
+   - =readonly=
+     - Makes a variable constant, has =-a, -f, -p=
+   - Arrays
+     - =array[n]=value=
+     - =declare -a array=
+     - =array=(val1 val2 ...)=
+     - To use:
+       - =${array[*]}=
+   - Length of array
+     - =${#array}=
+   - Substitution
+     - =${VAR:-word}=
+     - If =VAR= is unset or null, substitute expansion of =word=, otherwise
+       expansion of =VAR=
+   - Strip substring
+     - =${VAR:offset:length}=
+     - Remove =offset= characters
+     - Keep =length= characters after offset
+   - Strip pattern from head
+     - =${VAR#pattern}= strips the shortest pattern
+     - =${VAR##pattern}= strips the longest pattern
+   - Strip pattern from tail
+     - =${VAR%pattern}= strips the shortest pattern
+     - =${VAR%%pattern}= strips the longest pattern
+   - Substitution
+     - =${VAR/search/replace}= replaces the first instance of =search= with =replace=
+     - =${VAR//search/replace}= replaces all instances of =search= with =replace=
+** Functions
+   - Basic Syntax
+     #+BEGIN_SRC bash
+       function FUNCTION_NAME { commands; }
+
+       FUNCTION_NAME () { commands; }
+     #+END_SRC
+
+   - What happens to positional arguments when a function is executed?
+     - They are updated to reflect what was passed to the function
+
+** Signals and Traps
+   - What signals are there?
+     - look at =man signal=
+   - What's a trap?
+     - allows script to catch a signal and process it (SIGKILL and SIGSTOP excluded)
+       #+BEGIN_SRC bash
+         trap 'echo "hello world"' SIGTERM SIGINT
+
+         echo "pid is $$"
+
+         while :
+         do
+             sleep 60
+         done
+       #+END_SRC
+
+   - Detect variable usage
+     #+BEGIN_SRC bash
+       declare -t x="foo"
+
+       trap 'echo "x is used here: $x"' DEBUG
+
+     #+END_SRC
